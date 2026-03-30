@@ -21,8 +21,8 @@ from payment_service.infrastructure.db.models import OutboxModel, PaymentModel, 
 def _payment_domain_to_insert_values(payment: Payment) -> dict:
     return {
         "id": payment.id,
-        "amount": payment.amount,
-        "currency": payment.currency.value,
+        "amount_minor": payment.amount.minor_units,
+        "currency": payment.amount.currency.value,
         "description": payment.description,
         "metadata_": payment.metadata,
         "status": payment.status.value,

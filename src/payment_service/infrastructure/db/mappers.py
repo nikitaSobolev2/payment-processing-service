@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from payment_service.domain.enums import Currency, PaymentStatus, SnapshotReason
+from payment_service.domain.money import Money
 from payment_service.domain.payment import Payment
 from payment_service.infrastructure.db.models import PaymentModel, PaymentSnapshotModel
 
@@ -8,8 +9,7 @@ from payment_service.infrastructure.db.models import PaymentModel, PaymentSnapsh
 def payment_model_to_domain(row: PaymentModel) -> Payment:
     return Payment(
         id=row.id,
-        amount=row.amount,
-        currency=Currency(row.currency),
+        amount=Money(minor_units=row.amount_minor, currency=Currency(row.currency)),
         description=row.description,
         metadata=row.metadata_,
         status=PaymentStatus(row.status),
@@ -23,8 +23,8 @@ def payment_model_to_domain(row: PaymentModel) -> Payment:
 def snapshot_state_from_payment(payment: Payment) -> dict:
     return {
         "id": str(payment.id),
-        "amount": str(payment.amount),
-        "currency": payment.currency.value,
+        "amount_minor": payment.amount.minor_units,
+        "currency": payment.amount.currency.value,
         "description": payment.description,
         "metadata": payment.metadata,
         "status": payment.status.value,

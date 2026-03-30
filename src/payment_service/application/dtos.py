@@ -62,8 +62,8 @@ def payment_to_webhook_payload(payment: Payment) -> WebhookPayloadDTO:
     return WebhookPayloadDTO(
         payment_id=payment.id,
         status=payment.status,
-        amount=payment.amount,
-        currency=payment.currency,
+        amount=payment.amount.to_decimal(),
+        currency=payment.amount.currency,
         description=payment.description,
         metadata=payment.metadata,
         processed_at=payment.processed_at,

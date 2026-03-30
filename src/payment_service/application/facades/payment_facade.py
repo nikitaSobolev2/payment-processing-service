@@ -14,6 +14,7 @@ from payment_service.application.dtos import (
     payment_to_webhook_payload,
 )
 from payment_service.domain.enums import PaymentStatus
+from payment_service.domain.money import Money
 from payment_service.domain.payment import Payment
 from payment_service.infrastructure.cache.redis_cache import PaymentCacheService
 from payment_service.infrastructure.db.repositories.payment_repository import (
@@ -28,8 +29,8 @@ from payment_service.infrastructure.webhook.client import WebhookClient
 def _payment_to_detail(p: Payment) -> PaymentDetailDTO:
     return PaymentDetailDTO(
         id=p.id,
-        amount=p.amount,
-        currency=p.currency,
+        amount=p.amount.to_decimal(),
+        currency=p.amount.currency,
         description=p.description,
         metadata=p.metadata,
         status=p.status,
@@ -49,8 +50,7 @@ def _new_payment_from_create(
 ) -> tuple[Payment, dict]:
     payment = Payment(
         id=payment_id,
-        amount=body.amount,
-        currency=body.currency,
+        amount=Money.from_decimal(body.amount, body.currency),
         description=body.description,
         metadata=body.metadata,
         status=PaymentStatus.PENDING,

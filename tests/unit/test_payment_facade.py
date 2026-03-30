@@ -8,6 +8,7 @@ import pytest
 from payment_service.application.facades.payment_facade import PaymentFacade
 from payment_service.domain.enums import Currency, PaymentStatus
 from payment_service.domain.mark_processed_result import MarkProcessedResult
+from payment_service.domain.money import Money
 from payment_service.domain.payment import Payment
 from payment_service.infrastructure.db.repositories.payment_repository import (
     PaymentRepository,
@@ -17,8 +18,7 @@ from payment_service.infrastructure.db.repositories.payment_repository import (
 def _pending_payment() -> Payment:
     return Payment(
         id=uuid4(),
-        amount=Decimal("10.00"),
-        currency=Currency.RUB,
+        amount=Money.from_decimal(Decimal("10.00"), Currency.RUB),
         description="x",
         metadata={},
         status=PaymentStatus.PENDING,
@@ -58,7 +58,6 @@ async def test_process_payment_message_does_not_notify_webhook_when_mark_returns
     same = Payment(
         id=processed.id,
         amount=processed.amount,
-        currency=processed.currency,
         description=processed.description,
         metadata=processed.metadata,
         status=PaymentStatus.SUCCEEDED,
@@ -96,7 +95,6 @@ async def test_process_payment_message_notifies_webhook_when_mark_returns_transi
     updated = Payment(
         id=processed.id,
         amount=processed.amount,
-        currency=processed.currency,
         description=processed.description,
         metadata=processed.metadata,
         status=PaymentStatus.SUCCEEDED,

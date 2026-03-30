@@ -1,16 +1,15 @@
 from datetime import UTC, datetime
-from decimal import Decimal
 from uuid import uuid4
 
 from payment_service.domain.enums import Currency, PaymentStatus
+from payment_service.domain.money import Money
 from payment_service.domain.payment import Payment
 
 
 def test_payment_can_transition_from_pending_to_succeeded():
     p = Payment(
         id=uuid4(),
-        amount=Decimal("10.00"),
-        currency=Currency.RUB,
+        amount=Money(minor_units=1000, currency=Currency.RUB),
         description="x",
         metadata={},
         status=PaymentStatus.PENDING,
@@ -25,8 +24,7 @@ def test_payment_can_transition_from_pending_to_succeeded():
 def test_payment_cannot_transition_from_succeeded():
     p = Payment(
         id=uuid4(),
-        amount=Decimal("1.00"),
-        currency=Currency.USD,
+        amount=Money(minor_units=100, currency=Currency.USD),
         description="x",
         metadata={},
         status=PaymentStatus.SUCCEEDED,

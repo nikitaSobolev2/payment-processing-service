@@ -2,18 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from payment_service.domain.enums import Currency, PaymentStatus
+from payment_service.domain.enums import PaymentStatus
+from payment_service.domain.money import Money
 
 
 @dataclass(slots=True)
 class Payment:
     id: UUID
-    amount: Decimal
-    currency: Currency
+    amount: Money
     description: str
     metadata: dict[str, Any]
     status: PaymentStatus
