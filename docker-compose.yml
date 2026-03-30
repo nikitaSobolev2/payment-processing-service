@@ -49,6 +49,7 @@ services:
     build: .
     command: >
       uvicorn payment_service.interfaces.api.main:app --host 0.0.0.0 --port 8000
+      --timeout-graceful-shutdown 30
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/payments

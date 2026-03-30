@@ -8,7 +8,7 @@ from faststream import FastStream
 from faststream.rabbit import ExchangeType, RabbitBroker, RabbitExchange, RabbitQueue
 from pydantic import BaseModel, ConfigDict
 
-from payment_service.config.settings import get_settings
+from payment_service.config.settings import Settings, get_settings
 from payment_service.infrastructure.messaging.constants import (
     DLQ_ROUTING_KEY,
     EXCHANGE_PAYMENTS_EVENTS,
@@ -16,7 +16,10 @@ from payment_service.infrastructure.messaging.constants import (
     QUEUE_PAYMENTS_NEW,
     ROUTING_KEY_PAYMENTS_NEW,
 )
-from payment_service.infrastructure.wiring import build_payment_facade_dependencies
+from payment_service.infrastructure.wiring import (
+    PaymentFacadeDependencies,
+    build_payment_facade_dependencies,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +30,7 @@ class PaymentNewMessage(BaseModel):
     payment_id: UUID
 
 
-def _build_app() -> FastStream:
-    settings = get_settings()
-    deps = build_payment_facade_dependencies(settings)
+def _build_app(settings: Settings, deps: PaymentFacadeDependencies) -> FastStream:
     facade = deps.facade
 
     broker = RabbitBroker(settings.rabbitmq_url)
@@ -86,10 +87,33 @@ def _build_app() -> FastStream:
     return app
 
 
+def _wrap_exit_for_shutdown_logging(app: FastStream) -> None:
+    original_exit = app.exit
+
+    def exit_with_log() -> None:
+        logger.info("graceful shutdown initiated")
+        original_exit()
+
+    app.exit = exit_with_log  # type: ignore[method-assign]
+
+
+async def _run_consumer_async() -> None:
+    settings = get_settings()
+    deps = build_payment_facade_dependencies(settings)
+    app = _build_app(settings, deps)
+    _wrap_exit_for_shutdown_logging(app)
+    try:
+        await app.run()
+    finally:
+        await deps.webhook.aclose()
+        await deps.redis_client.aclose()
+        await deps.engine.dispose()
+        logger.info("shutdown complete")
+
+
 def main() -> None:
     logging.basicConfig(level=get_settings().log_level.upper())
-    app = _build_app()
-    asyncio.run(app.run())
+    asyncio.run(_run_consumer_async())
 
 
 if __name__ == "__main__":

@@ -89,6 +89,8 @@ curl -s "http://localhost:8000/api/v1/payments/<PAYMENT_ID>" ^
 8. Outbox: `python -m payment_service.workers.outbox_publisher`
 9. Consumer: `python -m payment_service.workers.consumer`
 
+В **production** для API задайте **`--timeout-graceful-shutdown <секунды>`** (например `30`), чтобы uvicorn дождался завершения текущих запросов в пределах лимита перед вызовом `lifespan` (освобождение webhook, Redis, пула БД).
+
 ## Тесты и линтер
 
 Используйте виртуальное окружение проекта (`.venv`). На Windows: `.venv\Scripts\python.exe`.
