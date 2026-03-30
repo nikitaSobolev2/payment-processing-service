@@ -1,0 +1,13 @@
+target-version = "py312"
+src = ["src", "tests"]
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[lint.isort]
+known-first-party = ["payment_service"]
+
+[lint.per-file-ignores]
+# Imports must follow sys.path bootstrap so `alembic upgrade` works without PYTHONPATH.
+"alembic/env.py" = ["E402"]
